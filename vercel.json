@@ -1,9 +1,11 @@
 {
   "version": 2,
+  "public": true,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "destination": "https://meeting-summarizer-0we1.onrender.com/api/$1"
     },
     {
       "source": "/static/(.*)",
