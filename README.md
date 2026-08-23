@@ -1,10 +1,18 @@
 # 🎙️ MeetPulse AI — Intelligent Meeting Summarizer & Action Item Extractor
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green.svg)](https://fastapi.tiangolo.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://meeting-summarizer-aps.vercel.app/)
+[![Backend Status](https://img.shields.io/badge/Render-Online-46E3B7?style=for-the-badge&logo=render)](https://meeting-summarizer-0we1.onrender.com)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 
 > **Automated meeting audio transcription, structured intelligence extraction, key decision logging, and interactive action items tracking.**
+
+---
+
+### 🌐 Live Deployment Links
+- 🚀 **Live Web App (Vercel):** **[https://meeting-summarizer-aps.vercel.app/](https://meeting-summarizer-aps.vercel.app/)**
+- ⚡ **Live Backend API (Render):** **[https://meeting-summarizer-0we1.onrender.com](https://meeting-summarizer-0we1.onrender.com)**
+- 📖 **Interactive API Docs (Swagger UI):** **[https://meeting-summarizer-0we1.onrender.com/docs](https://meeting-summarizer-0we1.onrender.com/docs)**
 
 ---
 
