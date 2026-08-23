@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeetPulse AI — Intelligent Meeting Summarizer</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
+</head>
+<body class="bg-[#0B0F17] text-slate-200 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 max-w-sm"></div>
+
+  <!-- Main Navigation Header -->
+  <header class="border-b border-gray-800/80 bg-gray-950/70 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white font-bold text-lg">
+          🎙️
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            MeetPulse <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">AI Summarizer</span>
+          </h1>
+          <p class="text-xs text-gray-400">Speech-to-Text & Action-Oriented Intelligence</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 border border-gray-800 bg-gray-900/60 p-1 rounded-xl">
+        <button data-tab="upload" class="nav-tab px-4 py-1.5 text-xs font-semibold rounded-lg transition-all border border-blue-500 text-blue-400 bg-blue-950/30">
+          🎙️ Upload & Record
+        </button>
+        <button data-tab="direct-text" class="nav-tab px-4 py-1.5 text-xs font-semibold rounded-lg transition-all border border-transparent text-gray-400 hover:text-gray-200">
+          📝 Direct Text
+        </button>
+        <button data-tab="history" class="nav-tab px-4 py-1.5 text-xs font-semibold rounded-lg transition-all border border-transparent text-gray-400 hover:text-gray-200">
+          📁 Meeting History
+        </button>
+      </nav>
+
+      <!-- System Status Indicator -->
+      <div class="hidden sm:flex items-center space-x-3">
+        <span id="backend-status-badge" class="text-xs px-2.5 py-1 rounded-full font-medium bg-emerald-950 text-emerald-400 border border-emerald-800/40">
+          ● System Online
+        </span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: UPLOAD & LIVE RECORD PANEL                        -->
+    <!-- ======================================================== -->
+    <div id="panel-upload" class="tab-panel space-y-8">
+      
+      <!-- Input Controls Section (Upload + Mic Recording) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: File Dropzone (7 Cols) -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-6 border border-gray-800">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-bold text-gray-100 flex items-center gap-2">
+              <span>📁</span> Upload Meeting Audio
+            </h2>
+            <span class="text-xs text-gray-400">MP3, WAV, M4A, OGG, WEBM, MP4 (Max 50MB)</span>
+          </div>
+
+          <!-- Dropzone Box -->
+          <div id="dropzone" class="border-2 border-dashed border-gray-700 hover:border-blue-500 rounded-xl p-8 text-center cursor-pointer transition-all bg-gray-900/40 hover:bg-blue-950/10 flex flex-col items-center justify-center group">
+            <input type="file" id="audio-file-input" class="hidden" accept=".mp3,.wav,.m4a,.ogg,.webm,.mp4,.flac">
+            <div class="w-14 h-14 rounded-2xl bg-gray-800/80 group-hover:bg-blue-600/20 text-gray-400 group-hover:text-blue-400 flex items-center justify-center text-2xl transition-all mb-3">
+              📤
+            </div>
+            <p class="text-sm font-semibold text-gray-200">Drag & drop your meeting recording here</p>
+            <p class="text-xs text-gray-400 mt-1">or <span class="text-blue-400 underline font-medium">browse local files</span></p>
+          </div>
+
+          <!-- Selected File Preview Card (Hidden initially) -->
+          <div id="file-preview" class="hidden bg-gray-900/90 border border-blue-500/30 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3 min-w-0">
+                <span class="text-2xl">🎵</span>
+                <div class="truncate">
+                  <p id="file-name" class="text-sm font-semibold text-gray-100 truncate">meeting_recording.wav</p>
+                  <p id="file-size" class="text-xs text-gray-400">3.4 MB</p>
+                </div>
+              </div>
+              <button id="btn-remove-file" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-1 bg-rose-950/30 rounded border border-rose-900/40">
+                Remove
+              </button>
+            </div>
+            <audio id="audio-preview-player" controls class="w-full h-9 rounded-lg bg-gray-800 hidden"></audio>
+          </div>
+        </div>
+
+        <!-- Right: Live Mic Recorder & Options (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-6">
+          
+          <!-- Live Mic Recorder Card -->
+          <div class="glass-card rounded-2xl p-6 border border-gray-800 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-base font-bold text-gray-100 flex items-center gap-2">
+                  <span>🎙️</span> Record Live Meeting
+                </h2>
+                <span id="record-indicator" class="hidden text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40">
+                  ● LIVE
+                </span>
+              </div>
+              <p id="record-status" class="text-xs text-gray-400 mb-4">Click below to capture meeting audio directly from your microphone.</p>
+              
+              <!-- Waveform Canvas -->
+              <canvas id="waveform-canvas" class="w-full h-16 rounded-lg bg-gray-900 border border-gray-800"></canvas>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between pt-2">
+              <span id="record-timer" class="font-mono text-lg font-bold text-blue-400 tracking-wider">00:00</span>
+              <div class="flex space-x-2">
+                <button id="btn-start-record" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-all shadow-lg shadow-rose-600/30 flex items-center gap-2">
+                  <span>●</span> Start Recording
+                </button>
+                <button id="btn-stop-record" class="hidden px-4 py-2 rounded-xl text-xs font-bold bg-gray-700 hover:bg-gray-600 text-white transition-all flex items-center gap-2">
+                  <span>⏹</span> Stop & Attach
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Advanced Engine Settings & Action Button -->
+      <div class="glass-card rounded-2xl p-5 border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+          <!-- ASR Provider -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">ASR Speech Engine</label>
+            <select id="asr-provider-select" class="w-full text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-200 px-3 py-2 focus:ring-1 focus:ring-blue-500 outline-none">
+              <option value="auto">Auto Detect (Recommended)</option>
+              <option value="groq">Groq Whisper (Ultra-Fast)</option>
+              <option value="openai">OpenAI Whisper API</option>
+              <option value="gemini">Google Gemini Audio</option>
+              <option value="mock">Offline Fallback / Demo</option>
+            </select>
+          </div>
+
+          <!-- LLM Provider -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">LLM Summarizer</label>
+            <select id="llm-provider-select" class="w-full text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-200 px-3 py-2 focus:ring-1 focus:ring-blue-500 outline-none">
+              <option value="auto">Auto Detect (Gemini / Groq / OpenAI)</option>
+              <option value="gemini">Google Gemini 1.5 Flash</option>
+              <option value="groq">Groq Llama-3.3 70B</option>
+              <option value="openai">OpenAI GPT-4o-mini</option>
+              <option value="fallback">Built-in Extractor</option>
+            </select>
+          </div>
+
+          <!-- Custom Instructions -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">Custom Prompt Guidance</label>
+            <input type="text" id="custom-prompt" placeholder="e.g. Focus on engineering blockers..." class="w-full text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-200 px-3 py-2 focus:ring-1 focus:ring-blue-500 outline-none placeholder-gray-600">
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex items-end">
+          <button id="btn-process-audio" disabled class="w-full md:w-auto px-8 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-xl shadow-blue-500/25 transition-all opacity-50 cursor-not-allowed flex items-center justify-center gap-2">
+            <span>⚡ Transcribe & Summarize</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Processing Progress Tracker (Hidden by default) -->
+      <div id="processing-status" class="hidden glass-card rounded-2xl p-6 border border-blue-500/40 bg-blue-950/10 space-y-4 animate-fade-in">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <p id="progress-step-text" class="text-sm font-semibold text-blue-200">Processing meeting audio...</p>
+          </div>
+          <span class="text-xs text-blue-400 font-mono">In Progress</span>
+        </div>
+
+        <!-- 3-Step Indicators -->
+        <div class="grid grid-cols-3 gap-2 pt-2">
+          <div class="flex items-center space-x-2">
+            <div id="step-indicator-1" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs ring-4 ring-blue-900">1</div>
+            <span class="text-xs text-gray-300 font-medium hidden sm:inline">1. Uploading Audio</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div id="step-indicator-2" class="w-8 h-8 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center font-bold text-xs">2</div>
+            <span class="text-xs text-gray-300 font-medium hidden sm:inline">2. Speech ASR</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div id="step-indicator-3" class="w-8 h-8 rounded-full bg-gray-700 text-gray-400 flex items-center justify-center font-bold text-xs">3</div>
+            <span class="text-xs text-gray-300 font-medium hidden sm:inline">3. LLM Action Items</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- RESULTS SECTION (Transcripts + Summaries + Action Items)  -->
+      <!-- ======================================================== -->
+      <div id="results-section" class="hidden space-y-6">
+        
+        <!-- Meeting Header Card -->
+        <div class="glass-card rounded-2xl p-6 border border-gray-800 space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span id="meeting-sentiment-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/40">
+                  Constructive & Goal-Oriented
+                </span>
+                <span id="meeting-asr-badge" class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
+                  ASR: Whisper
+                </span>
+                <span id="meeting-llm-badge" class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700">
+                  LLM: Gemini
+                </span>
+                <span id="meeting-date" class="text-xs text-gray-400">
+                  2026-08-23 16:30
+                </span>
+              </div>
+              <h2 id="meeting-title" class="text-2xl font-black text-white tracking-tight">Strategic Product & Team Alignment Meeting</h2>
+              <div id="meeting-tags" class="flex flex-wrap gap-1.5 mt-2"></div>
+            </div>
+
+            <!-- Export Buttons Dropdown / Action Bar -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-copy-summary" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-all flex items-center gap-1.5">
+                📋 Copy Text
+              </button>
+              <button id="btn-export-md" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 border border-blue-800/60 transition-all flex items-center gap-1.5">
+                ⬇️ Markdown (.md)
+              </button>
+              <button id="btn-export-pdf" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-800/60 transition-all flex items-center gap-1.5">
+                📑 PDF Report
+              </button>
+              <button id="btn-export-json" class="px-3 py-2 text-xs font-semibold rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition-all">
+                JSON
+              </button>
+              <button id="btn-export-txt" class="px-3 py-2 text-xs font-semibold rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition-all">
+                TXT
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-Column Main Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- LEFT COLUMN: Verbatim Transcript (5 Cols) -->
+          <div class="lg:col-span-5 glass-card rounded-2xl p-6 border border-gray-800 space-y-4 flex flex-col h-[650px]">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+              <h3 class="text-sm font-bold text-gray-200 flex items-center gap-2">
+                <span>🎙️</span> Verbatim Transcript
+              </h3>
+              <button id="btn-copy-transcript" class="text-xs text-gray-400 hover:text-blue-400 font-medium">
+                Copy
+              </button>
+            </div>
+
+            <!-- In-transcript Search Input -->
+            <div class="relative">
+              <input type="text" id="transcript-search" placeholder="Search transcript..." class="w-full text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-200 pl-8 pr-3 py-2 focus:ring-1 focus:ring-blue-500 outline-none placeholder-gray-600">
+              <span class="absolute left-2.5 top-2.5 text-xs text-gray-500">🔍</span>
+            </div>
+
+            <!-- Scrollable Transcript Text Container -->
+            <div class="flex-1 overflow-y-auto pr-2">
+              <pre id="meeting-transcript-text" class="text-xs font-mono text-gray-300 leading-relaxed whitespace-pre-wrap select-text"></pre>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: AI Intelligence Cards (7 Cols) -->
+          <div class="lg:col-span-7 space-y-6">
+            
+            <!-- 1. Executive Summary Card -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-800 space-y-3">
+              <h3 class="text-sm font-bold text-blue-400 flex items-center gap-2 uppercase tracking-wider">
+                <span>⚡</span> Executive Summary
+              </h3>
+              <p id="meeting-exec-summary" class="text-sm text-gray-300 leading-relaxed"></p>
+            </div>
+
+            <!-- 2. Key Decisions Card -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-800 space-y-3">
+              <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2 uppercase tracking-wider">
+                <span>🎯</span> Key Decisions Made
+              </h3>
+              <ul id="meeting-decisions-list" class="space-y-2"></ul>
+            </div>
+
+            <!-- 3. Discussion Points -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-800 space-y-3">
+              <h3 class="text-sm font-bold text-purple-400 flex items-center gap-2 uppercase tracking-wider">
+                <span>💡</span> Key Discussion Points
+              </h3>
+              <ul id="meeting-points-list" class="space-y-2"></ul>
+            </div>
+
+            <!-- 4. Action Items & Next Steps (Interactive Checklist) -->
+            <div class="glass-card rounded-2xl p-6 border border-gray-800 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2 uppercase tracking-wider">
+                  <span>✅</span> Action Items & Next Steps
+                </h3>
+                <span id="action-items-count" class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800/40">
+                  0 Tasks
+                </span>
+              </div>
+              
+              <!-- Checklist List -->
+              <div id="action-items-container" class="space-y-2"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: DIRECT TEXT SUMMARIZER PANEL                      -->
+    <!-- ======================================================== -->
+    <div id="panel-direct-text" class="tab-panel hidden space-y-6">
+      <div class="glass-card rounded-2xl p-6 border border-gray-800 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-white">Direct Transcript Summarizer</h2>
+            <p class="text-xs text-gray-400">Paste your meeting notes or raw transcripts to generate structured summaries and action items.</p>
+          </div>
+          <button id="btn-load-sample-transcript" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-950 text-blue-300 border border-blue-800 hover:bg-blue-900 transition-all flex items-center gap-1.5">
+            <span>✨</span> Load Sample Meeting
+          </button>
+        </div>
+
+        <textarea id="direct-transcript-text" rows="12" placeholder="Paste meeting transcript or notes here..." class="w-full text-xs font-mono rounded-xl bg-gray-900 border border-gray-700 text-gray-200 p-4 focus:ring-1 focus:ring-blue-500 outline-none leading-relaxed placeholder-gray-600"></textarea>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+          <input type="text" id="direct-custom-prompt" placeholder="Optional custom focus (e.g., 'Highlight budget decisions')..." class="w-full sm:w-96 text-xs rounded-lg bg-gray-900 border border-gray-700 text-gray-200 px-3 py-2.5 focus:ring-1 focus:ring-blue-500 outline-none">
+          <button id="btn-summarize-direct" class="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-lg shadow-blue-600/20">
+            Generate Summary
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: MEETING HISTORY & ARCHIVE PANEL                   -->
+    <!-- ======================================================== -->
+    <div id="panel-history" class="tab-panel hidden space-y-6">
+      
+      <!-- History Search Bar -->
+      <div class="glass-card rounded-2xl p-4 border border-gray-800 flex items-center justify-between">
+        <div class="relative flex-1 max-w-md">
+          <input type="text" id="history-search" placeholder="Search past meetings by title, topic, or keyword..." class="w-full text-xs rounded-xl bg-gray-900 border border-gray-700 text-gray-200 pl-9 pr-4 py-2.5 focus:ring-1 focus:ring-blue-500 outline-none placeholder-gray-600">
+          <span class="absolute left-3 top-3 text-xs text-gray-500">🔍</span>
+        </div>
+      </div>
+
+      <!-- History Grid -->
+      <div id="history-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+      <!-- Empty State -->
+      <div id="history-empty" class="hidden glass-card rounded-2xl p-12 text-center border border-gray-800 space-y-3">
+        <div class="text-4xl">📂</div>
+        <h3 class="text-base font-bold text-gray-200">No Past Meetings Found</h3>
+        <p class="text-xs text-gray-400">Upload or record a meeting to start building your archive.</p>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="/static/js/recorder.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

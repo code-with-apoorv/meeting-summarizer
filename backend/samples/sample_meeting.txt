@@ -1,0 +1,22 @@
+[00:00 - Alice (Product Lead)]: Good morning everyone, thanks for joining the Q3 Product & Roadmap alignment meeting. Today we need to decide on three key things: the new user onboarding flow, our mobile app release date, and cloud database migration.
+
+[00:45 - Bob (Engineering Lead)]: Thanks Alice. On the database migration, we analyzed Postgres vs DynamoDB. Postgres with pgvector will save us 40% in infrastructure costs and simplifies our vector search for the AI features. I recommend we finalize Postgres.
+
+[01:30 - Carol (Design Lead)]: From the UX side, the redesigned onboarding flow has reduced drop-off by 25% in user testing. We just need engineering to hook up the new analytics events before we push to production.
+
+[02:15 - David (DevOps / QA)]: We have finished the load testing for the mobile app backend. It handles 5,000 concurrent requests smoothly. However, the iOS build certificate expires next Friday, so we need that renewed immediately.
+
+[03:00 - Alice (Product Lead)]: Great progress. Let's make the decisions:
+1. We officially approve Postgres as our primary database and vector store.
+2. Mobile app v2.0 release date is locked for September 15th.
+3. The new onboarding UI will be enabled for 50% of new signups starting next Monday.
+
+[03:45 - Alice (Product Lead)]: Here are the action items:
+- Bob: Finalize the Postgres schema migration script and share the benchmark report by this Friday.
+- Carol: Deliver the finalized Figma design tokens and mobile onboarding assets to the engineering repo by Wednesday.
+- David: Renew the Apple developer certificates and set up the automated staging CI/CD pipeline by Thursday.
+- Alice: Update the executive stakeholder roadmap and schedule the external release announcement for September 15th.
+
+[04:30 - Bob (Engineering Lead)]: Understood. We will kick off the migration scripts right after this call.
+
+[04:45 - Alice (Product Lead)]: Thank you everyone, let's wrap up and get to work!
