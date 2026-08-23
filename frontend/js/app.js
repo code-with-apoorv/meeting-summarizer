@@ -2,7 +2,10 @@
  * Meeting Summarizer - Main Frontend Application Logic
  */
 
-const API_BASE = '';
+// Dynamic API Base: Automatically connects to live Render backend if hosted on Vercel/external domain
+const API_BASE = window.location.hostname.includes('vercel.app') 
+  ? 'https://meeting-summarizer-0we1.onrender.com' 
+  : '';
 let currentMeeting = null;
 let selectedAudioFile = null;
 

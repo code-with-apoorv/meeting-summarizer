@@ -20,7 +20,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Enable CORS for cross-origin frontend requests
+# Enable CORS for cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,12 +33,23 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(meetings.router)
 
-# Mount Frontend Static Directory
-FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
+# Resolve Frontend Static Directory across local and cloud deployment environments
+possible_frontend_paths = [
+    Path(__file__).resolve().parent.parent.parent / "frontend",
+    Path.cwd() / "frontend",
+    Path(__file__).resolve().parent.parent / "frontend"
+]
 
-if FRONTEND_DIR.exists():
+FRONTEND_DIR = None
+for p in possible_frontend_paths:
+    if p.exists() and (p / "index.html").exists():
+        FRONTEND_DIR = p
+        break
+
+if FRONTEND_DIR:
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
     @app.get("/", include_in_schema=False)
+    @app.get("/index.html", include_in_schema=False)
     async def serve_frontend_index():
         return FileResponse(FRONTEND_DIR / "index.html")
